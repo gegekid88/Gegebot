@@ -13,6 +13,7 @@ import com.vdurmont.emoji.EmojiParser;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.reaction.ReactionEmoji;
+import discord4j.core.spec.MessageEditSpec;
 
 // create event
 public class CreateEventHandler implements MessageCreateHandler {
@@ -40,6 +41,7 @@ public class CreateEventHandler implements MessageCreateHandler {
 			for (Entry<String, RoleConfiguration> entry : eventConfiguration.getRoleConfigurationMap().entrySet()) {
 				msg.addReaction(ReactionEmoji.unicode(entry.getValue().getEmojiUnicode())).block();
 			}
+			msg.edit(MessageEditSpec.builder().contentOrNull("eventId: " + msg.getId().asString() + "\n" + eventConfiguration.toString()).build()).block();
 
 			// setup event
 			this.eventOrganizer.createEvent(guildId, channelId, msg.getId().asString(), eventConfiguration);

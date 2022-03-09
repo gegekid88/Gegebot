@@ -9,8 +9,8 @@ import discord4j.core.spec.MessageEditSpec;
 
 // sign up to event
 // emojiUnicode
-public class JoinHandler{
-	
+public class JoinHandler {
+
 	private EventOrganizer eventOrganizer;
 
 	public JoinHandler(EventOrganizer eventOrganizer) {
@@ -18,21 +18,29 @@ public class JoinHandler{
 	}
 
 	public void execute(ReactionAddEvent event) {
-		
-		// ignore myself
-		if (event.getUserId().asString().equals(ConfigurationLoader.BOT_ID)) return;
 
+		// ignore myself
+		if (event.getUserId().asString().equals(ConfigurationLoader.BOT_ID))
+			return;
+		
 		String messageId = event.getMessageId().asString();
 		String guildId = event.getGuildId().get().asString();
-		String emojiStr = event.getEmoji().asUnicodeEmoji().orElse(null).getRaw();
+		
+		// to improve
+		boolean isUnicodeEmoji = event.getEmoji().asUnicodeEmoji().isPresent();
+		if (!isUnicodeEmoji) return;
+		
+		String emojiStr = event.getEmoji().asUnicodeEmoji().get().getRaw();
+		
 		Member member = event.getMember().orElse(null);
 
-		this.eventOrganizer.signUpToEvent(guildId, messageId, emojiStr, member);
-		
-		String msg = "----------------------------------------------------------\n";
-		msg += this.eventOrganizer.getEventSpecificStringInfo(guildId, messageId);
-		msg += "----------------------------------------------------------";
-		
-		event.getMessage().block().edit(MessageEditSpec.builder().contentOrNull(msg).build()).block();
+		if (this.eventOrganizer.signUpToEvent(guildId, messageId, emojiStr, member)) {
+			String msg = "----------------------------------------------------------\n";
+			msg += "eventId: " + messageId + "\n";
+			msg += this.eventOrganizer.getEventSpecificStringInfo(guildId, messageId);
+			msg += "----------------------------------------------------------";
+
+			event.getMessage().block().edit(MessageEditSpec.builder().contentOrNull(msg).build()).block();
+		}
 	}
 }

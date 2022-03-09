@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import discord4j.core.object.entity.Member;
 
+//todo null pattern instead of null checking
 public class EventOrganizer {
 	
 	private Map<String, GuildEvent> guildEvents = new HashMap<>();
@@ -24,15 +24,29 @@ public class EventOrganizer {
 
 		this.guildEvents.put(guildId, guildEvent);
 	}
-
-	public void signUpToEvent(String guildId, String eventId, String role, Member member) {
+	
+	public boolean deleteEvent(String guildId, String eventId) {
 		GuildEvent guildEvent = this.guildEvents.get(guildId);
-		guildEvent.signUpToEvent(eventId, role, member);
+		if (guildEvent != null) {
+			return guildEvent.deleteEvent(eventId);
+		}
+		return false;
 	}
 
-	public void leaveEvent(String guildId, String eventId, String role, Member member) {
+	public boolean signUpToEvent(String guildId, String eventId, String role, Member member) {
 		GuildEvent guildEvent = this.guildEvents.get(guildId);
-		guildEvent.leave(eventId, role, member);
+		if (guildEvent != null) {
+			return guildEvent.signUpToEvent(eventId, role, member);
+		}
+		return false;
+	}
+
+	public boolean leaveEvent(String guildId, String eventId, String role, Member member) {
+		GuildEvent guildEvent = this.guildEvents.get(guildId);
+		if (guildEvent != null) {
+			return guildEvent.leave(eventId, role, member);
+		}
+		return false;
 	}
 
 	public String getEventSpecificStringInfo(String guildId, String eventId) {
@@ -40,10 +54,12 @@ public class EventOrganizer {
 		return guildEvent.getSpecificEventStringInfo(eventId);
 	}
 	
-	public void cleanEvents() {
-		for(Entry<String, GuildEvent> entry: this.guildEvents.entrySet()) {
-			entry.getValue().cleanEvents();
+	public List<Event> cleanEvents(String guildId) {
+		GuildEvent guildEvent = this.guildEvents.get(guildId);
+		if (guildEvent != null) {
+			return guildEvent.getEventToClean();
 		}
+		return new ArrayList<>();
 	}
 	
 	public List<Event> getRecurEvents(String guildId) {

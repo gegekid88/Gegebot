@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import discord4j.core.object.entity.Member;
 import lombok.Getter;
 import lombok.NonNull;
@@ -19,9 +16,11 @@ import lombok.Setter;
 @Setter
 @RequiredArgsConstructor
 public class Event {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(Event.class);
-	
+
+	// looks weird, but need info to know which message to clean
+	@NonNull
+	private String eventId;
+
 	// looks weird, but need info to know which channel to post
 	@NonNull
 	private String channelId;
@@ -31,7 +30,7 @@ public class Event {
 
 	// role, userList
 	private Map<String, List<Member>> joinersMap = new HashMap<>();
-	
+
 	public void signUp(String emojiUnicode, Member member) {
 
 		String role = this.getRoleFromRoleConfiguration(emojiUnicode);
@@ -45,8 +44,7 @@ public class Event {
 	}
 
 	public void leave(String emojiUnicode, Member member) {
-		
-		LOGGER.info("leave");
+
 		String role = this.getRoleFromRoleConfiguration(emojiUnicode);
 
 		List<Member> members = this.joinersMap.get(role);
@@ -58,21 +56,20 @@ public class Event {
 		String resp = "";
 		resp += "title: " + this.eventConfiguration.getTitle() + "\n";
 		resp += "time: <t:" + this.eventConfiguration.getEventStartEpoch() + ">" + "\n";
-		
+
 		for (Entry<String, RoleConfiguration> entry : this.eventConfiguration.getRoleConfigurationMap().entrySet()) {
-			resp += entry.getKey() + " (" + entry.getValue().getCount() + ")" + " " + entry.getValue().getEmojiUnicode() + ": ";
+			resp += entry.getKey() + " (" + entry.getValue().getCount() + ")" + " " + entry.getValue().getEmojiUnicode()
+					+ ": ";
 			List<Member> joiners = joinersMap.get(entry.getKey());
-			if(joiners != null) {
+			if (joiners != null) {
 				resp += "\n";
-				for(Member joiner: joiners) {
+				for (Member joiner : joiners) {
 					resp += "    " + joiner.getDisplayName() + "\n";
 				}
-			}
-			else {
+			} else {
 				resp += "\n";
 			}
 		}
-		LOGGER.info(resp);
 		return resp;
 	}
 

@@ -1,4 +1,5 @@
 package com.gegebot;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.gegebot.event.MessageCreateHandler;
 import com.gegebot.event.impl.CreateEventHandler;
+import com.gegebot.event.impl.DeleteEventHandler;
 import com.gegebot.event.impl.JoinHandler;
 import com.gegebot.event.impl.NotJoinHandler;
 import com.gegebot.event.impl.PingHandler;
@@ -24,7 +26,7 @@ import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import reactor.core.publisher.Mono;
 
 public class Main {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
 	// eventOrganizer
@@ -37,22 +39,24 @@ public class Main {
 	static {
 		messageCreateHandlers.put("ping", new PingHandler());
 		messageCreateHandlers.put("event", new CreateEventHandler(eventOrganizer));
+		messageCreateHandlers.put("delete", new DeleteEventHandler(eventOrganizer));
 	}
 
 	public static void main(String[] args) {
-		
+
 		// load config
 		ConfigurationLoader.loadConfig();
-		
+
 		// Creates the gateway client and connects to the gateway
-		final GatewayDiscordClient client = DiscordClientBuilder
-				.create(ConfigurationLoader.BOT_TOKEN).build().login().block();
+		final GatewayDiscordClient client = DiscordClientBuilder.create(ConfigurationLoader.BOT_TOKEN).build().login()
+				.block();
 		// ! commands
 		client.getEventDispatcher().on(MessageCreateEvent.class).onErrorResume(mono -> Mono.empty())
 				.subscribe(event -> {
 					final String content = event.getMessage().getContent();
 					for (final Map.Entry<String, MessageCreateHandler> entry : messageCreateHandlers.entrySet()) {
 						if (content.startsWith('!' + entry.getKey())) {
+							LOGGER.info("execute " + entry.getKey());
 							entry.getValue().execute(event);
 							break;
 						}
@@ -61,12 +65,14 @@ public class Main {
 
 		// sign up
 		client.getEventDispatcher().on(ReactionAddEvent.class).onErrorResume(mono -> Mono.empty()).subscribe(event -> {
+			LOGGER.info("execute join");
 			joinHandler.execute(event);
 		});
 
 		// leave
 		client.getEventDispatcher().on(ReactionRemoveEvent.class).onErrorResume(mono -> Mono.empty())
 				.subscribe(event -> {
+					LOGGER.info("execute leave");
 					notJoinHandler.execute(event);
 				});
 

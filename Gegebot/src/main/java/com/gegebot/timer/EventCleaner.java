@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -46,8 +47,16 @@ public class EventCleaner extends TimerTask {
 				delay = delay < 0 ? 0 : delay;
 				timer.schedule(task, delay * 1000);
 			}
+			
+			List<Event> cleanEvents = this.eventOrganizer.cleanEvents(guildId);
+			for (Event event : cleanEvents) {
+				TimerTask task = new EventDeletor(client, event.getChannelId(), event.getEventId());
+
+				Long delay = Integer.toUnsignedLong(ConfigurationLoader.SECONDS_BEFORE_DELETE);
+				// do not delete post immediately so people can have reference of the party during recruit for 6 hours
+				timer.schedule(task, delay * 1000);
+			}
 		}
-		this.eventOrganizer.cleanEvents();
 	}
 
 	private Map<String, Object> extractEventInfo(EventConfiguration eventConfiguration) {
@@ -72,9 +81,9 @@ public class EventCleaner extends TimerTask {
 
 		infos.put("json", json);
 
-		// recreate the event 12 hours before the actual event will happen
+		// recreate the event x hours before the actual event will happen
 		infos.put("epoch", epoch - System.currentTimeMillis() / 1000 - ConfigurationLoader.SECONDS_BEFORE_POST);
-
+		
 		return infos;
 	}
 }

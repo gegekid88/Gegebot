@@ -7,33 +7,47 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import discord4j.core.object.entity.Member;
 
+// todo null pattern instead of null checking
 public class GuildEvent {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(GuildEvent.class);
 
 	private Map<String, Event> events = new HashMap<>();
 
 	public void createEvent(String channelId, String eventId, EventConfiguration eventConfiguration) {
-		Event event = new Event(channelId, eventConfiguration);
+		Event event = new Event(eventId, channelId, eventConfiguration);
 		events.put(eventId, event);
+	}
+	
+	public boolean deleteEvent(String eventId) {
+		return events.remove(eventId) != null;
 	}
 
 	public String getSpecificEventStringInfo(String eventId) {
 		return this.events.get(eventId).toString();
 	}
 
-	public void signUpToEvent(String eventId, String role, Member member) {
-		if (this.events.get(eventId) != null) {
-			Event event = this.events.get(eventId);
+	public boolean signUpToEvent(String eventId, String role, Member member) {
+		Event event = this.events.get(eventId);
+		if (event != null) {
 			event.signUp(role, member);
+			return true;
 		}
+		return false;
 	}
 
-	public void leave(String eventId, String role, Member member) {
-		if (this.events.get(eventId) != null) {
-			Event event = this.events.get(eventId);
+	public boolean leave(String eventId, String role, Member member) {
+		Event event = this.events.get(eventId);
+		if (event != null) {
 			event.leave(role, member);
+			return true;
 		}
+		return false;
 	}
 
 	public List<Event> getEventsToRecur() {
@@ -44,22 +58,27 @@ public class GuildEvent {
 			// if recur is set and current event is pass current time, recreate event
 			if (e.getEventConfiguration().getRecurTimeInSeconds() > 0
 					&& System.currentTimeMillis() / 1000 > e.getEventConfiguration().getEventStartEpoch()) {
+				LOGGER.info("recurring " + entry.getKey());
 				recurEvents.add(entry.getValue());
 			}
 		}
 		return recurEvents;
 	}
 
-	public void cleanEvents() {
+	public List<Event> getEventToClean() {
+		List<Event> cleanEvent = new ArrayList<>();
 		Iterator<Entry<String, Event>> iterator = this.events.entrySet().iterator();
 		while (iterator.hasNext()) {
 			Entry<String, Event> entry = iterator.next();
 		    Event event = entry.getValue();
 		    
-		    // if event is pass current time, clean it
+		    // if event + deletion time is pass current time, clean it
 		    if (System.currentTimeMillis() / 1000 > event.getEventConfiguration().getEventStartEpoch()) {
+		    	LOGGER.info("cleaning " + entry.getKey());
+		    	cleanEvent.add(entry.getValue());
 		    	iterator.remove();
 			}
 		}
+		return cleanEvent;
 	}
 }
