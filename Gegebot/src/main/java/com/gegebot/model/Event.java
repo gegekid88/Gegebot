@@ -17,14 +17,6 @@ import lombok.Setter;
 @RequiredArgsConstructor
 public class Event {
 
-	// looks weird, but need info to know which message to clean
-	@NonNull
-	private String eventId;
-
-	// looks weird, but need info to know which channel to post
-	@NonNull
-	private String channelId;
-
 	@NonNull
 	private EventConfiguration eventConfiguration;
 
@@ -54,17 +46,23 @@ public class Event {
 
 	public String toString() {
 		String resp = "";
+		resp += "eventId: " + this.eventConfiguration.getEventId() + "\n";
 		resp += "title: " + this.eventConfiguration.getTitle() + "\n";
 		resp += "time: <t:" + this.eventConfiguration.getEventStartEpoch() + ">" + "\n";
 
 		for (Entry<String, RoleConfiguration> entry : this.eventConfiguration.getRoleConfigurationMap().entrySet()) {
-			resp += entry.getKey() + " (" + entry.getValue().getCount() + ")" + " " + entry.getValue().getEmojiUnicode()
-					+ ": ";
+			int roleCount = entry.getValue().getCount();
+			String emojiUnicode = entry.getValue().getEmojiUnicode();
+			resp += entry.getKey() + " (" + roleCount + ")" + " " + emojiUnicode + ": ";
 			List<Member> joiners = joinersMap.get(entry.getKey());
 			if (joiners != null) {
 				resp += "\n";
+				int joinerCount = 0;
 				for (Member joiner : joiners) {
-					resp += "    " + joiner.getDisplayName() + "\n";
+					joinerCount++;
+					resp += "    " + joiner.getDisplayName();
+					if (joinerCount > roleCount) resp += " - waiting";
+					resp += "\n";	
 				}
 			} else {
 				resp += "\n";

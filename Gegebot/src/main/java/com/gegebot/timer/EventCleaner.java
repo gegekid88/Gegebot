@@ -15,48 +15,78 @@ import com.gegebot.model.EventOrganizer;
 import com.gegebot.model.RoleConfiguration;
 import com.gegebot.util.ConfigurationLoader;
 
+import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.channel.TextChannel;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class EventCleaner extends TimerTask {
-	private Timer timer;
-	private GatewayDiscordClient client;
-	private EventOrganizer eventOrganizer;
 
-	public EventCleaner(Timer timer, GatewayDiscordClient client, EventOrganizer eventOrganizer) {
-		this.timer = timer;
-		this.client = client;
-		this.eventOrganizer = eventOrganizer;
-	}
+	@NonNull
+	private Timer timer;
+	@NonNull
+	private GatewayDiscordClient client;
+	@NonNull
+	private EventOrganizer eventOrganizer;
 
 	@Override
 	public void run() {
-		// get all the guilds using the bot
-		List<String> guildIds = new ArrayList<>();
-		client.getGuilds().map(guild -> guild.getId().asString()).subscribe(guildIds::add);
 
-		for (String guildId : guildIds) {
-			List<Event> recurEvents = this.eventOrganizer.getRecurEvents(guildId);
-			for (Event event : recurEvents) {
-				EventConfiguration eventConfiguration = event.getEventConfiguration();
-				Map<String, Object> eventInfos = extractEventInfo(eventConfiguration);
-				TimerTask task = new EventCreator(client, event.getChannelId(), (String) eventInfos.get("json"));
+		List<Event> endingEvents = this.eventOrganizer.getEndingEvents();
+		for (Event event : endingEvents) {
 
-				Long delay = (Long) eventInfos.get("epoch");
-				// if already less than 12 hours before actual event, post it immediately so
-				// people can sign up!!
-				delay = delay < 0 ? 0 : delay;
-				timer.schedule(task, delay * 1000);
+			EventConfiguration eventConfiguration = event.getEventConfiguration();
+
+			// attempt to recur recurrent events
+			if (eventConfiguration.getRecurTimeInSeconds() > 0) {
+				recurEvents(eventConfiguration);
 			}
-			
-			List<Event> cleanEvents = this.eventOrganizer.cleanEvents(guildId);
-			for (Event event : cleanEvents) {
-				TimerTask task = new EventDeletor(client, event.getChannelId(), event.getEventId());
 
-				Long delay = Integer.toUnsignedLong(ConfigurationLoader.SECONDS_BEFORE_DELETE);
-				// do not delete post immediately so people can have reference of the party during recruit for 6 hours
-				timer.schedule(task, delay * 1000);
-			}
+			// remind people
+			remind(event);
+
+			// clean event
+			cleanEvents(eventConfiguration);
 		}
+	}
+
+	private void remind(Event event) {
+		List<Member> remindJoiners = new ArrayList<>();
+		for (List<Member> joiners : event.getJoinersMap().values()) {
+			remindJoiners.addAll(joiners);
+		}
+		String reminder = "Lets go go go to " + event.getEventConfiguration().getTitle() + " ";
+		for (Member m : remindJoiners) {
+			reminder += "<@" + m.getId().asString() + ">";
+			reminder += " ";
+		}
+
+		((TextChannel) this.client.getChannelById(Snowflake.of(event.getEventConfiguration().getPartyMeetingChannelId())).block())
+				.createMessage(reminder).block();
+	}
+
+	private void cleanEvents(EventConfiguration eventConfiguration) {
+		TimerTask task = new EventDeletor(client, eventConfiguration.getScheduledChannelId(),
+				eventConfiguration.getEventId());
+		Long delay = Integer.toUnsignedLong(ConfigurationLoader.SECONDS_BEFORE_DELETE);
+		// do not delete post immediately so people can have reference of the party
+		// during recruit for 6 hours
+		timer.schedule(task, delay * 1000);
+	}
+
+	private void recurEvents(EventConfiguration eventConfiguration) {
+		Map<String, Object> eventInfos = extractEventInfo(eventConfiguration);
+		TimerTask task = new EventCreator(client, eventConfiguration.getScheduledChannelId(),
+				(String) eventInfos.get("json"));
+
+		Long delay = (Long) eventInfos.get("epoch");
+		// if already less than 12 hours before actual event, post it immediately so
+		// people can sign up!!
+		delay = delay < 0 ? 0 : delay;
+		timer.schedule(task, delay * 1000);
 	}
 
 	private Map<String, Object> extractEventInfo(EventConfiguration eventConfiguration) {
@@ -66,7 +96,9 @@ public class EventCleaner extends TimerTask {
 		int epoch = eventConfiguration.getEventStartEpoch() + eventConfiguration.getRecurTimeInSeconds();
 
 		String json = "";
-		json += "{\"title\": \"" + eventConfiguration.getTitle() + "\"," + " \"eventStartEpoch\":" + epoch + ", "
+		json += "{\"title\": \"" + eventConfiguration.getTitle() + "\"," + " \"scheduledChannelName\":\""
+				+ eventConfiguration.getScheduledChannelName() + "\"," + " \"partyMeetingChannelName\":\""
+				+ eventConfiguration.getPartyMeetingChannelName() + "\"," + " \"eventStartEpoch\":" + epoch + ", "
 				+ "\"recurTimeInSeconds\":" + eventConfiguration.getRecurTimeInSeconds() + "," + "\"roles\": {";
 
 		Map<String, RoleConfiguration> roleConfiguration = eventConfiguration.getRoleConfigurationMap();
@@ -83,7 +115,7 @@ public class EventCleaner extends TimerTask {
 
 		// recreate the event x hours before the actual event will happen
 		infos.put("epoch", epoch - System.currentTimeMillis() / 1000 - ConfigurationLoader.SECONDS_BEFORE_POST);
-		
+
 		return infos;
 	}
 }

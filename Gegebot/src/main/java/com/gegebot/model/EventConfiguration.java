@@ -16,6 +16,12 @@ public class EventConfiguration {
 	
 	@JsonProperty("title")
 	private String title;
+	
+	@JsonProperty("scheduledChannelName")
+	private String scheduledChannelName;
+	
+	@JsonProperty("partyMeetingChannelName")
+	private String partyMeetingChannelName;
 
 	@JsonProperty("eventStartEpoch")
 	private Integer eventStartEpoch;
@@ -27,15 +33,21 @@ public class EventConfiguration {
 	@JsonProperty("roles")
 	private Map<String, RoleConfiguration> roleConfigurationMap;
 	
+	// hacks
+	private String scheduledChannelId;
+	private String partyMeetingChannelId;
+	private String eventId;
+	
 	public String toString() {
-		String msg = "------------------------------------------------------------\n";
+		String msg = "----------------------------------------------------------\n";
+		msg += "eventId: " + this.eventId + "\n";
 		msg += "title: " + this.title + "\n";
 		msg += "time: <t:" + this.eventStartEpoch + ">" + "\n";
 		for (Entry<String, RoleConfiguration> entry : this.roleConfigurationMap.entrySet()) {
 			msg += entry.getKey() + " (" + entry.getValue().getCount() + ")" + " " + entry.getValue().getEmojiUnicode()
 					+ ":\n";
 		}
-		msg += "------------------------------------------------------------";
+		msg += "----------------------------------------------------------";
 		return msg;
 	}
 }

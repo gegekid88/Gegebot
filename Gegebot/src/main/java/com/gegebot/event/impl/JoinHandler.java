@@ -24,7 +24,6 @@ public class JoinHandler {
 			return;
 		
 		String messageId = event.getMessageId().asString();
-		String guildId = event.getGuildId().get().asString();
 		
 		// to improve
 		boolean isUnicodeEmoji = event.getEmoji().asUnicodeEmoji().isPresent();
@@ -34,10 +33,9 @@ public class JoinHandler {
 		
 		Member member = event.getMember().orElse(null);
 
-		if (this.eventOrganizer.signUpToEvent(guildId, messageId, emojiStr, member)) {
+		if (this.eventOrganizer.signUpToEvent(messageId, emojiStr, member)) {
 			String msg = "----------------------------------------------------------\n";
-			msg += "eventId: " + messageId + "\n";
-			msg += this.eventOrganizer.getEventSpecificStringInfo(guildId, messageId);
+			msg += this.eventOrganizer.getEventSpecificStringInfo(messageId);
 			msg += "----------------------------------------------------------";
 
 			event.getMessage().block().edit(MessageEditSpec.builder().contentOrNull(msg).build()).block();

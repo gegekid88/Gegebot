@@ -4,18 +4,18 @@ import java.util.TimerTask;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class EventDeletor extends TimerTask {
 
+	@NonNull
 	private GatewayDiscordClient client;
+	@NonNull
 	private String channelId;
+	@NonNull
 	private String eventId;
-
-	public EventDeletor(GatewayDiscordClient client, String channelId, String eventId) {
-		this.client = client;
-		this.channelId = channelId;
-		this.eventId = eventId;
-	}
 
 	@Override
 	public void run() {

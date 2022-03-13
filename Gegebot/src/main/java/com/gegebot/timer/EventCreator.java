@@ -5,18 +5,18 @@ import java.util.TimerTask;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.TextChannel;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-public class EventCreator extends TimerTask{
+@RequiredArgsConstructor
+public class EventCreator extends TimerTask {
 
+	@NonNull
 	private GatewayDiscordClient client;
+	@NonNull
 	private String channelId;
+	@NonNull
 	private String jsonStr;
-	
-	public EventCreator(GatewayDiscordClient client, String channelId, String jsonStr) {
-		this.client = client;
-		this.channelId = channelId;
-		this.jsonStr = jsonStr;
-	}
 	
 	@Override
 	public void run() {
