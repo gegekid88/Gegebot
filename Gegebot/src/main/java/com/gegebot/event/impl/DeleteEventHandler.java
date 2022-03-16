@@ -16,6 +16,7 @@ public class DeleteEventHandler implements MessageCreateHandler {
 
 	@Override
 	public void execute(MessageCreateEvent event) {
+		
 		// parse incoming from discord, remove !delete to get eventId
 		String eventId = event.getMessage().getContent().replace("!delete ", "");
 

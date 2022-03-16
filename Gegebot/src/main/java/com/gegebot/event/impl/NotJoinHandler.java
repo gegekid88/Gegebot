@@ -17,25 +17,29 @@ public class NotJoinHandler {
 
 	public void execute(ReactionRemoveEvent event) {
 
-		// ignore myself
-		if (event.getUserId().asString().equals(ConfigurationLoader.BOT_ID))
-			return;
+		try {
+			// ignore myself
+			if (event.getUserId().asString().equals(ConfigurationLoader.BOT_ID))
+				return;
 
-		String messageId = event.getMessageId().asString();
-		
-		// to improve
-		boolean isUnicodeEmoji = event.getEmoji().asUnicodeEmoji().isPresent();
-		if (!isUnicodeEmoji) return;
-		
-		String emojiStr = event.getEmoji().asUnicodeEmoji().get().getRaw();
-		
-		Member member = event.getGuild().block().getMemberById(event.getUserId()).block();
-		if (this.eventOrganizer.leaveEvent(messageId, emojiStr, member)) {
-			String msg = "----------------------------------------------------------\n";
-			msg += this.eventOrganizer.getEventSpecificStringInfo(messageId);
-			msg += "----------------------------------------------------------";
+			String messageId = event.getMessageId().asString();
+			
+			// to improve
+			boolean isUnicodeEmoji = event.getEmoji().asUnicodeEmoji().isPresent();
+			if (!isUnicodeEmoji) return;
+			
+			String emojiStr = event.getEmoji().asUnicodeEmoji().get().getRaw();
+			
+			Member member = event.getGuild().block().getMemberById(event.getUserId()).block();
+			if (this.eventOrganizer.leaveEvent(messageId, emojiStr, member)) {
+				String msg = "----------------------------------------------------------\n";
+				msg += this.eventOrganizer.getEventSpecificStringInfo(messageId);
+				msg += "----------------------------------------------------------";
 
-			event.getMessage().block().edit(MessageEditSpec.builder().contentOrNull(msg).build()).block();
+				event.getMessage().block().edit(MessageEditSpec.builder().contentOrNull(msg).build()).block();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

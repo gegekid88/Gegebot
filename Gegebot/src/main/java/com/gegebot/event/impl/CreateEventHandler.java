@@ -57,9 +57,9 @@ public class CreateEventHandler implements MessageCreateHandler {
 
 			// clean !event message
 			event.getMessage().delete().block();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-			event.getMessage().getChannel().block().createMessage("Invalid json.").block();
+			event.getMessage().getChannel().block().createMessage("Invalid.").block();
 		}
 	}
 }
