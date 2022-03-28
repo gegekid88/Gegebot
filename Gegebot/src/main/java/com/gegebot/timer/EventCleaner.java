@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.gegebot.Main;
 import com.gegebot.model.Event;
 import com.gegebot.model.EventConfiguration;
 import com.gegebot.model.EventOrganizer;
@@ -24,7 +28,9 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class EventCleaner extends TimerTask {
+	
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 	@NonNull
 	private Timer timer;
 	@NonNull
@@ -54,6 +60,8 @@ public class EventCleaner extends TimerTask {
 	}
 
 	private void remind(Event event) {
+		LOGGER.info("reminding " + event.getEventConfiguration().getEventId());
+		
 		List<Member> remindJoiners = new ArrayList<>();
 		for (List<Member> joiners : event.getJoinersMap().values()) {
 			remindJoiners.addAll(joiners);
@@ -69,6 +77,8 @@ public class EventCleaner extends TimerTask {
 	}
 
 	private void cleanEvents(EventConfiguration eventConfiguration) {
+		LOGGER.info("cleaning " + eventConfiguration.getEventId());
+		
 		TimerTask task = new EventDeletor(client, eventConfiguration.getScheduledChannelId(),
 				eventConfiguration.getEventId());
 		Long delay = Integer.toUnsignedLong(ConfigurationLoader.SECONDS_BEFORE_DELETE);
@@ -78,6 +88,9 @@ public class EventCleaner extends TimerTask {
 	}
 
 	private void recurEvents(EventConfiguration eventConfiguration) {
+		
+		LOGGER.info("recurring " + eventConfiguration.getEventId());
+		
 		Map<String, Object> eventInfos = extractEventInfo(eventConfiguration);
 		TimerTask task = new EventCreator(client, eventConfiguration.getScheduledChannelId(),
 				(String) eventInfos.get("json"));

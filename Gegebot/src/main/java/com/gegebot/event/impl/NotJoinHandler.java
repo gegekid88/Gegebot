@@ -1,5 +1,8 @@
 package com.gegebot.event.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.gegebot.model.EventOrganizer;
 import com.gegebot.util.ConfigurationLoader;
 
@@ -9,6 +12,7 @@ import discord4j.core.spec.MessageEditSpec;
 
 public class NotJoinHandler {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(NotJoinHandler.class);
 	private EventOrganizer eventOrganizer;
 
 	public NotJoinHandler(EventOrganizer eventOrganizer) {
@@ -37,6 +41,7 @@ public class NotJoinHandler {
 				msg += "----------------------------------------------------------";
 
 				event.getMessage().block().edit(MessageEditSpec.builder().contentOrNull(msg).build()).block();
+				LOGGER.info(member.getUsername() + " successfully joined " + messageId);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

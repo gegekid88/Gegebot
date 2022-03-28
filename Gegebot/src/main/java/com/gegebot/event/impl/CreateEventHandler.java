@@ -1,6 +1,5 @@
 package com.gegebot.event.impl;
 
-import java.io.IOException;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

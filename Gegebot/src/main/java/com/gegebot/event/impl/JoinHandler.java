@@ -1,5 +1,8 @@
 package com.gegebot.event.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.gegebot.model.EventOrganizer;
 import com.gegebot.util.ConfigurationLoader;
 
@@ -11,6 +14,7 @@ import discord4j.core.spec.MessageEditSpec;
 // emojiUnicode
 public class JoinHandler {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(JoinHandler.class);
 	private EventOrganizer eventOrganizer;
 
 	public JoinHandler(EventOrganizer eventOrganizer) {
@@ -40,6 +44,7 @@ public class JoinHandler {
 				msg += "----------------------------------------------------------";
 
 				event.getMessage().block().edit(MessageEditSpec.builder().contentOrNull(msg).build()).block();
+				LOGGER.info(member.getUsername() + " successfully joined " + messageId);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

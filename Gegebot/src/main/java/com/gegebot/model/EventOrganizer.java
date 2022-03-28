@@ -58,7 +58,7 @@ public class EventOrganizer {
 		    Event event = entry.getValue();
 		    
 		    // if event past currentTime
-		    if (System.currentTimeMillis() / 1000 > event.getEventConfiguration().getEventStartEpoch()) {
+		    if (System.currentTimeMillis() / 1000 >= event.getEventConfiguration().getEventStartEpoch()) {
 		    	LOGGER.info("end: " + entry.getKey());
 		    	events.add(entry.getValue());
 		    	iterator.remove();
