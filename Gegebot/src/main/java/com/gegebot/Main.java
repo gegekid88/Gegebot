@@ -14,6 +14,7 @@ import com.gegebot.event.impl.CreateRaffleEventHandler;
 import com.gegebot.event.impl.DeleteEventHandler;
 import com.gegebot.event.impl.DrawRaffleHandler;
 import com.gegebot.event.impl.JoinHandler;
+import com.gegebot.event.impl.KickVoiceHandler;
 import com.gegebot.event.impl.NotJoinHandler;
 import com.gegebot.event.impl.PingHandler;
 import com.gegebot.event.impl.RaffleJoinHandler;
@@ -50,6 +51,7 @@ public class Main {
 		messageCreateHandlers.put("delete", new DeleteEventHandler(eventOrganizer));
 		messageCreateHandlers.put("raffle", new CreateRaffleEventHandler(raffle));
 		messageCreateHandlers.put("drawWinner", new DrawRaffleHandler(raffle));
+		messageCreateHandlers.put("kickvoice", new KickVoiceHandler());
 	}
 
 	public static void main(String[] args) {
